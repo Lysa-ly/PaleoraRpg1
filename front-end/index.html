@@ -1,0 +1,1607 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Paleora Rpg </title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,300;1,400&family=JetBrains+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg-deep: #07080f;
+  --bg-panel: #0d0f1c;
+  --bg-card: #111422;
+  --bg-raised: #161928;
+  --border: rgba(100,120,255,0.12);
+  --border-glow: rgba(120,160,255,0.25);
+  --aurora-1: #4fc3f7;
+  --aurora-2: #7c4dff;
+  --aurora-3: #00e5a0;
+  --aurora-4: #ff1744; /* Força */
+  --aurora-5: #ffd600; /* Vigor */
+  --aurora-6: #29b6f6; /* Carisma */
+  --text-primary: #e8eaf6;
+  --text-secondary: #9fa8da;
+  --text-muted: #5c6bc0;
+  --font-display: 'Cinzel', serif;
+  --font-body: 'Crimson Pro', serif;
+  --font-mono: 'JetBrains Mono', monospace;
+  --radius: 10px;
+  --radius-lg: 16px;
+  --glow-blue: 0 0 20px rgba(79,195,247,0.2);
+  --glow-purple: 0 0 20px rgba(124,77,255,0.2);
+  --glow-green: 0 0 20px rgba(0,229,160,0.2);
+  --attr-forca: #ff1744;
+  --attr-agilidade: #9c27b0;
+  --attr-vigor: #ffd600;
+  --attr-intelecto: #00c853;
+  --attr-carisma: #29b6f6;
+  --site-bg-image: none;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg-deep);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background:
+    radial-gradient(ellipse 80% 40% at 20% 0%, rgba(124,77,255,0.08) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 30% at 80% 0%, rgba(79,195,247,0.06) 0%, transparent 50%),
+    radial-gradient(ellipse 50% 50% at 50% 100%, rgba(0,229,160,0.04) 0%, transparent 60%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+#app { position: relative; z-index: 1; max-width: 960px; margin: 0 auto; padding: 24px 20px 80px; }
+
+#save-status {
+  position: fixed;
+  top: 16px; right: 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  padding: 6px 14px;
+  border-radius: 20px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  transition: all 0.3s;
+  z-index: 100;
+  letter-spacing: 0.05em;
+}
+#save-dot { width: 7px; height: 7px; border-radius: 50%; transition: background 0.3s; }
+.status-saved #save-dot { background: var(--aurora-3); box-shadow: 0 0 6px var(--aurora-3); }
+.status-saving #save-dot { background: var(--aurora-5); box-shadow: 0 0 6px var(--aurora-5); animation: pulse 0.8s infinite; }
+.status-pending #save-dot { background: var(--aurora-4); }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+.section-header {
+  display: flex; align-items: center; gap: 12px;
+  margin-bottom: 20px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+}
+.section-header h2 {
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+.section-line { flex: 1; height: 1px; background: linear-gradient(to right, var(--border), transparent); }
+
+.section {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  margin-bottom: 20px;
+  position: relative;
+  overflow: hidden;
+}
+.section::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(to right, transparent, rgba(120,140,255,0.3), transparent);
+}
+
+#section-hero {
+  background: linear-gradient(135deg, #0a0c1a 0%, #0e1128 50%, #0a0e1f 100%);
+  border-color: rgba(124,77,255,0.2);
+  padding: 36px 32px;
+}
+
+.hero-inner { display: grid; grid-template-columns: 220px 1fr; gap: 36px; align-items: start; }
+
+.portrait-frame {
+  position: relative;
+  width: 200px;
+  height: 200px;
+}
+.portrait-ring {
+  position: absolute; inset: -8px;
+  border-radius: 50%;
+  border: 1px solid rgba(124,77,255,0.4);
+  animation: rotate-ring 12s linear infinite;
+}
+.portrait-ring-2 {
+  position: absolute; inset: -14px;
+  border-radius: 50%;
+  border: 1px dashed rgba(79,195,247,0.2);
+  animation: rotate-ring 20s linear infinite reverse;
+}
+@keyframes rotate-ring { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+
+.portrait-img {
+  width: 200px; height: 200px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: linear-gradient(135deg, #1a1535, #0d1a2e);
+  border: 2px solid rgba(124,77,255,0.3);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  position: relative;
+  transition: border-color 0.3s;
+}
+.portrait-img:hover { border-color: rgba(124,77,255,0.7); }
+.portrait-img svg { opacity: 0.4; }
+.portrait-img img { width:100%; height:100%; object-fit:cover; display:none; border-radius:50%; }
+.portrait-hint {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-muted);
+  padding: 8px;
+  background: linear-gradient(to top, rgba(10,8,20,0.9), transparent);
+  opacity: 0;
+  transition: opacity 0.3s;
+  letter-spacing: 0.08em;
+}
+.portrait-img:hover .portrait-hint { opacity: 1; }
+
+.portrait-badge {
+  position: absolute;
+  right: 6px; bottom: 6px;
+  width: 34px; height: 34px;
+  border-radius: 50%;
+  background: rgba(124,77,255,0.85);
+  border: 2px solid #0a0c1a;
+  display: flex; align-items: center; justify-content: center;
+  pointer-events: none;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+}
+.portrait-badge svg { opacity: 1 !important; width: 16px; height: 16px; }
+
+#portrait-upload { display: none; }
+
+.hero-info { padding-top: 8px; }
+
+.char-name-input {
+  font-family: var(--font-display);
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--text-primary);
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  width: 100%;
+  padding-bottom: 8px;
+  margin-bottom: 16px;
+  letter-spacing: 0.05em;
+  outline: none;
+  transition: border-color 0.3s;
+}
+.char-name-input:focus { border-color: rgba(124,77,255,0.5); }
+.char-name-input::placeholder { color: var(--text-muted); font-style: italic; }
+
+.meta-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 16px; }
+.meta-field { display: flex; flex-direction: column; gap: 4px; }
+.meta-label {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.meta-input {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 10px;
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.3s;
+  width: 100%;
+}
+.meta-input:focus { border-color: rgba(124,77,255,0.4); }
+
+.tags-row { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.tag {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  padding: 3px 10px;
+  border-radius: 20px;
+  border: 1px solid;
+  cursor: pointer;
+  background: transparent;
+  transition: all 0.2s;
+  text-transform: uppercase;
+}
+.tag.blue { color: var(--aurora-1); border-color: rgba(79,195,247,0.3); }
+.tag.purple { color: #c5acff; border-color: rgba(124,77,255,0.3); }
+.tag.green { color: var(--aurora-3); border-color: rgba(0,229,160,0.3); }
+.tag.pink { color: var(--aurora-4); border-color: rgba(255,107,157,0.3); }
+.tag.amber { color: var(--aurora-5); border-color: rgba(255,213,79,0.3); }
+.tag:hover { background: rgba(255,255,255,0.05); }
+
+.tag-add-input {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  background: transparent;
+  border: 1px dashed rgba(100,120,255,0.2);
+  border-radius: 20px;
+  padding: 3px 10px;
+  color: var(--text-muted);
+  outline: none;
+  width: 120px;
+  letter-spacing: 0.05em;
+}
+.tag-add-input:focus { border-color: rgba(100,120,255,0.5); color: var(--text-secondary); }
+
+.attr-constellation {
+  position: relative;
+  width: 300px;
+  height: 300px;
+  margin: 0 auto;
+  flex-shrink: 0;
+}
+
+.attr-ring {
+  position: absolute;
+  inset: 20px;
+  border: 1px solid rgba(100,120,255,0.08);
+  border-radius: 50%;
+}
+.attr-ring-2 {
+  position: absolute;
+  inset: 60px;
+  border: 1px dashed rgba(100,120,255,0.06);
+  border-radius: 50%;
+}
+
+.attr-center {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%,-50%);
+  width: 56px; height: 56px;
+  border-radius: 50%;
+  background: var(--bg-card);
+  border: 1px solid rgba(124,77,255,0.3);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.attr-node {
+  position: absolute;
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  transform: translate(-50%, -50%);
+  cursor: default;
+}
+
+.attr-orb {
+  width: 56px; height: 56px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  position: relative;
+  transition: all 0.3s;
+}
+.attr-orb-inner {
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  background: var(--bg-card);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 18px;
+  font-weight: 500;
+  z-index: 1;
+  transition: all 0.3s;
+}
+.attr-label {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.attr-controls { display: flex; gap: 4px; }
+.attr-btn {
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  border: 1px solid;
+  background: transparent;
+  cursor: pointer;
+  font-size: 14px;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s;
+  line-height: 1;
+  padding: 0;
+}
+
+.attr-forca .attr-orb { border: 1px solid color-mix(in srgb, var(--attr-forca) 45%, transparent); }
+.attr-forca .attr-orb-inner { color: var(--attr-forca); }
+.attr-forca .attr-label { color: var(--attr-forca); }
+.attr-forca .attr-btn { color: var(--attr-forca); border-color: color-mix(in srgb, var(--attr-forca) 45%, transparent); }
+.attr-forca .attr-btn:hover { background: rgba(255,107,157,0.1); }
+
+.attr-agilidade .attr-orb { border: 1px solid color-mix(in srgb, var(--attr-agilidade) 45%, transparent); }
+.attr-agilidade .attr-orb-inner { color: var(--attr-agilidade); }
+.attr-agilidade .attr-label { color: var(--attr-agilidade); }
+.attr-agilidade .attr-btn { color: var(--attr-agilidade); border-color: color-mix(in srgb, var(--attr-agilidade) 45%, transparent); }
+.attr-agilidade .attr-btn:hover { background: rgba(79,195,247,0.1); }
+
+.attr-vigor .attr-orb { border: 1px solid color-mix(in srgb, var(--attr-vigor) 55%, transparent); }
+.attr-vigor .attr-orb-inner { color: var(--attr-vigor); }
+.attr-vigor .attr-label { color: var(--attr-vigor); }
+.attr-vigor .attr-btn { color: var(--attr-vigor); border-color: color-mix(in srgb, var(--attr-vigor) 45%, transparent); }
+.attr-vigor .attr-btn:hover { background: rgba(124,77,255,0.1); }
+
+.attr-intelecto .attr-orb { border: 1px solid color-mix(in srgb, var(--attr-intelecto) 45%, transparent); }
+.attr-intelecto .attr-orb-inner { color: var(--attr-intelecto); }
+.attr-intelecto .attr-label { color: var(--attr-intelecto); }
+.attr-intelecto .attr-btn { color: var(--attr-intelecto); border-color: color-mix(in srgb, var(--attr-intelecto) 45%, transparent); }
+.attr-intelecto .attr-btn:hover { background: rgba(0,229,160,0.1); }
+
+.attr-carisma .attr-orb { border: 1px solid color-mix(in srgb, var(--attr-carisma) 55%, transparent); }
+.attr-carisma .attr-orb-inner { color: var(--attr-carisma); }
+.attr-carisma .attr-label { color: var(--attr-carisma); }
+.attr-carisma .attr-btn { color: var(--attr-carisma); border-color: color-mix(in srgb, var(--attr-carisma) 45%, transparent); }
+.attr-carisma .attr-btn:hover { background: rgba(92,141,255,0.1); }
+
+.attr-orb.pulse-anim { animation: attr-pulse 0.4s ease-out; }
+@keyframes attr-pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+
+.attr-section-inner { display: flex; gap: 32px; align-items: center; }
+.attr-sidebar { flex: 1; }
+
+.attr-summary-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-bottom: 12px;
+}
+.attr-summary-card h3 {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}
+.attr-bar-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.attr-bar-label { font-family: var(--font-mono); font-size: 10px; width: 72px; flex-shrink: 0; }
+.attr-bar-track {
+  flex: 1;
+  height: 4px;
+  background: rgba(255,255,255,0.05);
+  border-radius: 2px;
+  overflow: visible;
+  position: relative;
+}
+.attr-bar-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  position: relative;
+}
+.attr-bar-fill::after {
+  content: '';
+  position: absolute;
+  right: -3px; top: -3px;
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  background: inherit;
+  filter: blur(2px);
+  opacity: 0.7;
+}
+.attr-bar-val { font-family: var(--font-mono); font-size: 11px; width: 20px; text-align: right; }
+
+.attr-forca-bar .attr-bar-fill { background: var(--attr-forca); }
+.attr-forca-bar .attr-bar-label { color: var(--attr-forca); }
+.attr-forca-bar .attr-bar-val { color: var(--attr-forca); }
+
+.attr-agilidade-bar .attr-bar-fill { background: var(--attr-agilidade); }
+.attr-agilidade-bar .attr-bar-label { color: var(--attr-agilidade); }
+.attr-agilidade-bar .attr-bar-val { color: var(--attr-agilidade); }
+
+.attr-vigor-bar .attr-bar-fill { background: var(--attr-vigor); }
+.attr-vigor-bar .attr-bar-label { color: var(--attr-vigor); }
+.attr-vigor-bar .attr-bar-val { color: var(--attr-vigor); }
+
+.attr-intelecto-bar .attr-bar-fill { background: var(--attr-intelecto); }
+.attr-intelecto-bar .attr-bar-label { color: var(--attr-intelecto); }
+.attr-intelecto-bar .attr-bar-val { color: var(--attr-intelecto); }
+
+.attr-carisma-bar .attr-bar-fill { background: var(--attr-carisma); }
+.attr-carisma-bar .attr-bar-label { color: var(--attr-carisma); }
+.attr-carisma-bar .attr-bar-val { color: var(--attr-carisma); }
+
+.vitals-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+
+.vital-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.3s;
+}
+.vital-card:hover { border-color: var(--border-glow); }
+
+.vital-icon-row { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+.vital-emoji { font-size: 18px; }
+.vital-name {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+.vital-numbers { display: flex; align-items: baseline; gap: 4px; margin-bottom: 10px; }
+.vital-current {
+  font-family: var(--font-mono);
+  font-size: 28px;
+  font-weight: 500;
+  line-height: 1;
+  background: none;
+  border: none;
+  color: inherit;
+  width: 64px;
+  outline: none;
+  padding: 0;
+}
+.vital-current:focus { opacity: 0.8; }
+.vital-sep { font-family: var(--font-mono); font-size: 20px; color: var(--text-muted); }
+.vital-max {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  color: var(--text-muted);
+  background: none;
+  border: none;
+  outline: none;
+  width: 40px;
+  padding: 0;
+}
+.vital-max:focus { opacity: 0.8; }
+
+.vital-bar-track {
+  width: 100%;
+  height: 4px;
+  background: rgba(255,255,255,0.06);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.vital-bar-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.vital-hp { --v-color: #ff6b9d; color: var(--v-color); }
+.vital-hp .vital-bar-fill { background: linear-gradient(to right, #ff4081, #ff6b9d); }
+.vital-hp .vital-name { color: var(--v-color); }
+.vital-hp .vital-card { border-color: rgba(255,107,157,0.1); }
+
+.vital-san { --v-color: #7c4dff; color: #c5acff; }
+.vital-san .vital-bar-fill { background: linear-gradient(to right, #7c4dff, #c5acff); }
+.vital-san .vital-name { color: #c5acff; }
+
+.vital-pe { --v-color: #00e5a0; color: var(--v-color); }
+.vital-pe .vital-bar-fill { background: linear-gradient(to right, #00b386, #00e5a0); }
+.vital-pe .vital-name { color: var(--v-color); }
+
+.defense-row { display: flex; gap: 16px; align-items: center; }
+.defense-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px 24px;
+  text-align: center;
+  flex: 1;
+}
+.defense-label {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+.defense-value {
+  font-family: var(--font-mono);
+  font-size: 32px;
+  font-weight: 500;
+  color: var(--text-primary);
+  background: none;
+  border: none;
+  outline: none;
+  text-align: center;
+  width: 80px;
+}
+.defense-value:focus { color: var(--aurora-1); }
+
+.afin-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }
+
+.afin-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px 10px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+.afin-card::before {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 2px;
+  background: currentColor;
+  opacity: 0.3;
+  transition: opacity 0.3s;
+}
+.afin-card:hover::before { opacity: 0.6; }
+.afin-card.active::before { opacity: 1; }
+.afin-card.active { background: rgba(255,255,255,0.03); }
+
+.afin-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+.afin-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 8px currentColor;
+  display: inline-block;
+  flex-shrink: 0;
+  transition: transform 0.3s ease;
+}
+.afin-card:hover .afin-dot {
+  transform: scale(1.2);
+}
+.afin-name {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.afin-bar {
+  height: 3px;
+  background: rgba(255,255,255,0.06);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-bottom: 6px;
+}
+.afin-bar-fill { height: 100%; border-radius: 2px; background: currentColor; transition: width 0.4s; }
+.afin-pts {
+  font-family: var(--font-mono);
+  font-size: 16px;
+  font-weight: 500;
+  display: block;
+  margin-bottom: 6px;
+}
+.afin-controls { display: flex; justify-content: center; gap: 6px; }
+.afin-btn {
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  border: 1px solid currentColor;
+  background: transparent;
+  cursor: pointer;
+  font-size: 14px;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s;
+  opacity: 0.6;
+  color: inherit;
+}
+.afin-btn:hover { opacity: 1; background: rgba(255,255,255,0.08); }
+
+.afin-forca { color: var(--attr-forca); border-color: rgba(255,107,157,0.2); }
+.afin-vigor { color: var(--attr-vigor); border-color: rgba(124,77,255,0.2); }
+.afin-intelecto { color: var(--attr-intelecto); border-color: rgba(0,229,160,0.2); }
+.afin-carisma { color: var(--attr-carisma); border-color: rgba(92,141,255,0.2); }
+.afin-agilidade { color: var(--attr-agilidade); border-color: rgba(79,195,247,0.2); }
+
+.pericias-tabs { display: flex; gap: 4px; margin-bottom: 16px; }
+.pericias-tab {
+  flex: 1;
+  padding: 8px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.2s;
+  color: var(--text-muted);
+}
+.pericias-tab:hover { color: var(--text-secondary); }
+.pericias-tab.active-forca { background: rgba(255,107,157,0.1); border-color: rgba(255,107,157,0.3); color: var(--aurora-4); }
+.pericias-tab.active-carisma { background: rgba(92,141,255,0.1); border-color: rgba(92,141,255,0.3); color: var(--aurora-6); }
+.pericias-tab.active-intelecto { background: rgba(0,229,160,0.1); border-color: rgba(0,229,160,0.3); color: var(--aurora-3); }
+.pericias-tab.active-agilidade { background: rgba(79,195,247,0.1); border-color: rgba(79,195,247,0.3); color: var(--aurora-1); }
+.pericias-tab.active-vigor { background: rgba(124,77,255,0.1); border-color: rgba(124,77,255,0.3); color: var(--aurora-2); }
+
+.pericias-panel { display: none; }
+.pericias-panel.active { display: block; }
+
+.pericia-row {
+  display: flex;
+  align-items: center;
+  padding: 10px 14px;
+  border-radius: 6px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  margin-bottom: 6px;
+  transition: border-color 0.2s;
+}
+.pericia-row:hover { border-color: var(--border-glow); }
+.pericia-name { flex: 1; font-family: var(--font-body); font-size: 15px; color: var(--text-secondary); }
+.pericia-val {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  font-weight: 500;
+  width: 36px;
+  text-align: center;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 3px;
+  outline: none;
+  color: var(--text-primary);
+  transition: border-color 0.2s;
+}
+.pericia-val:focus { border-color: rgba(124,77,255,0.4); }
+
+.inventario-list { margin-bottom: 12px; }
+
+.item-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px;
+  margin-bottom: 10px;
+  position: relative;
+  transition: border-color 0.2s;
+}
+.item-card:hover { border-color: var(--border-glow); }
+
+.item-name {
+  width: 100%;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  padding: 4px 0 8px;
+  margin-bottom: 8px;
+  font-family: var(--font-body);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text-primary);
+  outline: none;
+}
+.item-name::placeholder { color: var(--text-muted); font-style: italic; }
+
+.item-desc {
+  width: 100%;
+  background: transparent;
+  border: none;
+  resize: vertical;
+  min-height: 60px;
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: var(--text-secondary);
+  outline: none;
+  line-height: 1.5;
+}
+.item-desc::placeholder { color: var(--text-muted); font-style: italic; }
+
+.item-remove {
+  position: absolute;
+  top: 10px; right: 10px;
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  border: 1px solid rgba(255,107,157,0.3);
+  background: transparent;
+  color: var(--aurora-4);
+  cursor: pointer;
+  font-size: 14px;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0;
+  transition: all 0.2s;
+}
+.item-card:hover .item-remove { opacity: 1; }
+.item-remove:hover { background: rgba(255,107,157,0.1); }
+
+.btn-add {
+  width: 100%;
+  padding: 10px;
+  background: transparent;
+  border: 1px dashed rgba(100,120,255,0.25);
+  border-radius: var(--radius);
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-add:hover { border-color: rgba(124,77,255,0.4); color: var(--text-secondary); background: rgba(124,77,255,0.05); }
+
+.condutos-intro {
+  font-family: var(--font-body);
+  font-style: italic;
+  font-size: 14px;
+  color: var(--text-muted);
+  margin-bottom: 16px;
+  padding-left: 12px;
+  border-left: 2px solid rgba(124,77,255,0.3);
+}
+
+.habilidade-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-bottom: 10px;
+  position: relative;
+  transition: border-color 0.2s;
+}
+.habilidade-card:hover { border-color: var(--border-glow); }
+
+.hab-header { display: flex; gap: 10px; margin-bottom: 10px; }
+.hab-nome {
+  flex: 1;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  padding: 2px 0 6px;
+  font-family: var(--font-display);
+  font-size: 14px;
+  letter-spacing: 0.05em;
+  color: var(--text-primary);
+  outline: none;
+}
+.hab-nome::placeholder { color: var(--text-muted); font-style: italic; font-family: var(--font-body); }
+.hab-custo {
+  width: 80px;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  padding: 2px 0 6px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--aurora-3);
+  outline: none;
+  text-align: center;
+}
+.hab-custo::placeholder { color: var(--text-muted); }
+.hab-desc {
+  width: 100%;
+  background: transparent;
+  border: none;
+  resize: vertical;
+  min-height: 60px;
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: var(--text-secondary);
+  outline: none;
+  line-height: 1.5;
+}
+.hab-desc::placeholder { color: var(--text-muted); font-style: italic; }
+
+.hab-remove {
+  position: absolute;
+  top: 10px; right: 10px;
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  border: 1px solid rgba(255,107,157,0.3);
+  background: transparent;
+  color: var(--aurora-4);
+  cursor: pointer;
+  font-size: 14px;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0;
+  transition: all 0.2s;
+}
+.habilidade-card:hover .hab-remove { opacity: 1; }
+.hab-remove:hover { background: rgba(255,107,157,0.1); }
+
+.historico-textarea {
+  width: 100%;
+  min-height: 140px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  font-family: var(--font-body);
+  font-size: 15px;
+  color: var(--text-secondary);
+  outline: none;
+  resize: vertical;
+  line-height: 1.7;
+  transition: border-color 0.3s;
+}
+.historico-textarea:focus { border-color: rgba(124,77,255,0.3); }
+.historico-textarea::placeholder { color: var(--text-muted); font-style: italic; }
+
+.notes-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.note-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px;
+}
+.note-title {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+.note-textarea {
+  width: 100%;
+  min-height: 100px;
+  background: transparent;
+  border: none;
+  font-family: var(--font-body);
+  font-size: 14px;
+  color: var(--text-secondary);
+  outline: none;
+  resize: vertical;
+  line-height: 1.6;
+}
+.note-textarea::placeholder { color: var(--text-muted); font-style: italic; }
+
+.config-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+.config-item { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; }
+.config-label { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-secondary); }
+.config-val { font-family: var(--font-mono); font-size: 11px; color: var(--aurora-3); }
+.toggle {
+  width: 36px; height: 20px;
+  border-radius: 10px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid var(--border);
+  cursor: pointer;
+  position: relative;
+  transition: all 0.3s;
+}
+.toggle.on { background: rgba(0,229,160,0.2); border-color: rgba(0,229,160,0.4); }
+.toggle::after {
+  content: '';
+  position: absolute;
+  width: 14px; height: 14px;
+  border-radius: 50%;
+  background: var(--text-muted);
+  top: 2px; left: 2px;
+  transition: all 0.3s;
+}
+.toggle.on::after { left: 18px; background: var(--aurora-3); }
+
+/* ===== BARRA DE PERSONAGENS / BACKEND ===== */
+#char-toolbar {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 14px 18px;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+#char-toolbar select {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 7px 10px;
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 14px;
+  outline: none;
+  min-width: 180px;
+  flex: 1;
+}
+.toolbar-btn {
+  background: transparent;
+  border: 1px solid rgba(100,120,255,0.25);
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+.toolbar-btn:hover { border-color: rgba(124,77,255,0.5); color: var(--text-primary); background: rgba(124,77,255,0.08); }
+.toolbar-btn.danger { border-color: rgba(255,107,157,0.3); color: var(--aurora-4); }
+.toolbar-btn.danger:hover { background: rgba(255,107,157,0.1); }
+.toolbar-btn.primary { border-color: rgba(0,229,160,0.35); color: var(--aurora-3); }
+.toolbar-btn.primary:hover { background: rgba(0,229,160,0.1); }
+
+#api-status {
+  display: flex; align-items: center; gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 6px 10px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+}
+#api-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--text-muted); flex-shrink: 0; }
+#api-status.online #api-dot { background: var(--aurora-3); box-shadow: 0 0 6px var(--aurora-3); }
+#api-status.offline #api-dot { background: var(--aurora-4); }
+#api-status.checking #api-dot { background: var(--aurora-5); animation: pulse 0.8s infinite; }
+
+#api-config-panel {
+  width: 100%;
+  display: none;
+  gap: 10px;
+  padding-top: 12px;
+  margin-top: 6px;
+  border-top: 1px solid var(--border);
+  align-items: center;
+  flex-wrap: wrap;
+}
+#api-config-panel.open { display: flex; }
+#api-config-panel input {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 7px 10px;
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  outline: none;
+  flex: 1;
+  min-width: 220px;
+}
+#api-config-panel small { color: var(--text-muted); font-family: var(--font-mono); font-size: 9px; width: 100%; }
+
+
+.vital-suggest-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 12px;
+  opacity: 0.5;
+  transition: opacity 0.2s;
+  margin-left: 2px;
+  line-height: 1;
+}
+.vital-suggest-btn:hover { opacity: 1; }
+
+#constellation-svg { position: absolute; inset: 0; pointer-events: none; }
+
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(100,120,255,0.2); border-radius: 2px; }
+
+
+/* ===== AUTENTICAÇÃO, TEMAS E FUNDO ===== */
+body:not(.authenticated) #app, body:not(.authenticated) #save-status { display:none !important; }
+#auth-screen { min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px; position:relative; z-index:5; }
+.auth-card { width:min(440px,100%); background:var(--bg-panel); border:1px solid var(--border); border-radius:var(--radius-lg); padding:30px; box-shadow:0 20px 60px rgba(0,0,0,.35); }
+.auth-title { font-family:var(--font-display); text-align:center; letter-spacing:.12em; margin-bottom:6px; }
+.auth-subtitle { text-align:center; color:var(--text-muted); font-family:var(--font-mono); font-size:10px; margin-bottom:22px; }
+.auth-card input { width:100%; margin-bottom:12px; background:var(--bg-card); border:1px solid var(--border); border-radius:7px; padding:11px; color:var(--text-primary); outline:none; }
+.auth-card button { width:100%; margin-top:4px; padding:10px; border-radius:7px; border:1px solid rgba(0,229,160,.35); background:transparent; color:var(--aurora-3); cursor:pointer; font-family:var(--font-mono); text-transform:uppercase; letter-spacing:.08em; }
+.auth-switch { margin-top:14px; text-align:center; color:var(--text-muted); font-family:var(--font-mono); font-size:10px; cursor:pointer; }
+.auth-error { min-height:18px; color:var(--aurora-4); font-family:var(--font-mono); font-size:11px; margin-bottom:6px; text-align:center; }
+#auth-register { display:none; }
+#theme-buttons { display:flex; gap:8px; flex-wrap:wrap; }
+#background-upload { display:none; }
+body.light-theme { --bg-deep:#f3f5fb; --bg-panel:#ffffff; --bg-card:#f7f8fc; --bg-raised:#eef1f8; --border:rgba(40,55,90,.14); --border-glow:rgba(70,90,150,.28); --text-primary:#182033; --text-secondary:#46516a; --text-muted:#68748f; }
+body.light-theme::before { background:radial-gradient(ellipse 80% 40% at 20% 0%,rgba(156,39,176,.07) 0%,transparent 60%),radial-gradient(ellipse 60% 30% at 80% 0%,rgba(41,182,246,.07) 0%,transparent 50%); }
+body.has-custom-bg { background-image:var(--site-bg-image); background-size:cover; background-position:center; background-attachment:fixed; }
+body.has-custom-bg::before { background:rgba(7,8,15,.72); }
+body.light-theme.has-custom-bg::before { background:rgba(255,255,255,.72); }
+.authenticated #auth-screen { display:none; }
+.user-pill { margin-left:auto; font-family:var(--font-mono); font-size:10px; color:var(--text-muted); }
+
+@media (max-width: 700px) {
+  .hero-inner { grid-template-columns: 1fr; }
+  .portrait-frame { margin: 0 auto; }
+  .attr-section-inner { flex-direction: column; }
+  .afin-grid { grid-template-columns: repeat(3, 1fr); }
+  .vitals-grid { grid-template-columns: 1fr; }
+  .notes-grid { grid-template-columns: 1fr; }
+  .config-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<div style="height:2px;width:100%;background:linear-gradient(to right,#4fc3f7,#7c4dff,#00e5a0,#ff6b9d,#ffd54f,#7c4dff,#4fc3f7);position:fixed;top:0;left:0;z-index:200;opacity:0.7;"></div>
+<div id="auth-screen">
+  <div class="auth-card">
+    <div class="auth-title">Paleora RPG</div>
+    <div class="auth-subtitle" id="auth-subtitle">Entre para acessar suas fichas</div>
+    <form id="auth-login" onsubmit="submitAuth(event,'login')">
+      <input id="login-email" type="email" autocomplete="email" placeholder="E-mail" required>
+      <input id="login-senha" type="password" autocomplete="current-password" placeholder="Senha" required>
+      <div class="auth-error" id="login-error"></div>
+      <button type="submit">Entrar</button>
+      <div class="auth-switch" onclick="mostrarRegistro()">Ainda não tenho conta — criar conta</div>
+    </form>
+    <form id="auth-register" onsubmit="submitAuth(event,'register')">
+      <input id="register-email" type="email" autocomplete="email" placeholder="E-mail" required>
+      <input id="register-senha" type="password" autocomplete="new-password" placeholder="Senha (mínimo 8 caracteres)" minlength="8" required>
+      <input id="register-confirm" type="password" autocomplete="new-password" placeholder="Confirmar senha" minlength="8" required>
+      <div class="auth-error" id="register-error"></div>
+      <button type="submit">Criar conta</button>
+      <div class="auth-switch" onclick="mostrarLogin()">Já tenho conta — entrar</div>
+    </form>
+  </div>
+</div>
+
+<div id="save-status" class="status-saved">
+  <div id="save-dot"></div>
+  <span id="save-text">Salvo</span>
+</div>
+
+<div id="app">
+
+  <!-- ===== BARRA DE PERSONAGENS (BACKEND) ===== -->
+  <div id="char-toolbar">
+    <select id="char-select" onchange="onSelecionarPersonagem()">
+      <option value="">Carregando personagens…</option>
+    </select>
+    <button class="toolbar-btn primary" onclick="novoPersonagem()">+ Novo</button>
+    <button class="toolbar-btn" onclick="duplicarPersonagem()">Duplicar</button>
+    <button class="toolbar-btn danger" onclick="excluirPersonagem()">Excluir</button>
+    <span class="user-pill" id="user-pill"></span><button class="toolbar-btn" onclick="logout()">Sair</button>
+    <div id="api-status" class="checking" onclick="toggleApiConfig()">
+      <div id="api-dot"></div>
+      <span id="api-status-text">Conectando…</span>
+    </div>
+    <div id="api-config-panel">
+      <small>Endereço do backend (https://paleorarpg1.onrender.com/)</small>
+      <input type="text" id="api-url-input" placeholder="https://paleorarpg1.onrender.com/">
+      <input type="password" id="api-key-input" placeholder="Chave de API (deixe vazio se o backend não exigir)">
+      <button class="toolbar-btn primary" onclick="salvarApiUrl()">Conectar</button>
+    </div>
+  </div>
+
+  <!-- ===== CAPA DO PERSONAGEM ===== -->
+  <div class="section" id="section-hero">
+    <div class="hero-inner">
+
+      <div style="display:flex;flex-direction:column;align-items:center;gap:16px;">
+        <div class="portrait-frame">
+          <div class="portrait-ring"></div>
+          <div class="portrait-ring-2"></div>
+          <div class="portrait-img" id="portrait-trigger">
+            <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
+              <circle cx="32" cy="24" r="12" stroke="rgba(140,160,255,0.4)" stroke-width="1.5"/>
+              <path d="M8 56c0-13.3 10.7-24 24-24s24 10.7 24 24" stroke="rgba(140,160,255,0.4)" stroke-width="1.5" fill="none"/>
+            </svg>
+            <img id="portrait-preview" src="" alt="Retrato do personagem">
+            <span class="portrait-hint">TROCAR RETRATO</span>
+            <div class="portrait-badge" title="Clique para adicionar/trocar a imagem do personagem">
+              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M4 8a2 2 0 0 1 2-2h1.2l.6-1.2A1.5 1.5 0 0 1 9.14 4h5.72a1.5 1.5 0 0 1 1.34.8L16.8 6H18a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8Z" stroke="white" stroke-width="1.6" stroke-linejoin="round"/>
+                <circle cx="12" cy="13" r="3.2" stroke="white" stroke-width="1.6"/>
+              </svg>
+            </div>
+          </div>
+        </div>
+        <input type="file" id="portrait-upload" accept="image/*">
+      </div>
+
+      <div class="hero-info">
+        <input class="char-name-input" id="char-name" type="text" placeholder="Nome do Personagem" value="">
+        <div class="meta-grid">
+          <div class="meta-field">
+            <span class="meta-label">Classe / Origem</span>
+            <input class="meta-input" id="meta-classe" type="text" placeholder="—" value="">
+          </div>
+          <div class="meta-field">
+            <span class="meta-label">Idade</span>
+            <input class="meta-input" id="meta-idade" type="text" placeholder="—" value="">
+          </div>
+          <div class="meta-field">
+            <span class="meta-label">Altura</span>
+            <input class="meta-input" id="meta-altura" type="text" placeholder="—" value="">
+          </div>
+          <div class="meta-field">
+            <span class="meta-label">Jogador</span>
+            <input class="meta-input" id="meta-jogador" type="text" placeholder="—" value="">
+          </div>
+          <div class="meta-field">
+            <span class="meta-label">Campanha</span>
+            <input class="meta-input" id="meta-campanha" type="text" placeholder="—" value="">
+          </div>
+
+        </div>
+
+        <div class="tags-row" id="tags-container">
+          <input class="tag-add-input" id="tag-input" type="text" placeholder="+ tag...">
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-header">
+      <h2>Atributos</h2>
+      <div class="section-line"></div>
+    </div>
+    <div class="attr-section-inner">
+
+      <div class="attr-constellation">
+        <svg id="constellation-svg" viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <filter id="glow-line">
+              <feGaussianBlur stdDeviation="2" result="blur"/>
+              <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+            </filter>
+          </defs>
+          <line id="line-forca" x1="150" y1="150" x2="150" y2="30" stroke="rgba(255,107,157,0.15)" stroke-width="1"/>
+          <line id="line-intelecto" x1="150" y1="150" x2="270" y2="115" stroke="rgba(0,229,160,0.15)" stroke-width="1"/>
+          <line id="line-carisma" x1="150" y1="150" x2="222" y2="248" stroke="rgba(197,172,255,0.15)" stroke-width="1"/>
+          <line id="line-vigor" x1="150" y1="150" x2="78" y2="248" stroke="rgba(255,213,79,0.15)" stroke-width="1"/>
+          <line id="line-agilidade" x1="150" y1="150" x2="30" y2="115" stroke="rgba(79,195,247,0.15)" stroke-width="1"/>
+        </svg>
+
+        <div class="attr-ring"></div>
+        <div class="attr-ring-2"></div>
+        <div class="attr-center">Alma</div>
+
+        <div class="attr-node attr-forca" style="top:30px;left:150px;" data-attr="forca">
+          <div class="attr-orb"><div class="attr-orb-inner" id="val-forca">1</div></div>
+          <div class="attr-controls">
+            <button class="attr-btn" onclick="changeAttr('forca',-1)">−</button>
+            <button class="attr-btn" onclick="changeAttr('forca',1)">+</button>
+          </div>
+          <div class="attr-label" style="color:var(--aurora-4)">Força</div>
+        </div>
+
+        <div class="attr-node attr-intelecto" style="top:115px;left:270px;" data-attr="intelecto">
+          <div class="attr-orb"><div class="attr-orb-inner" id="val-intelecto">1</div></div>
+          <div class="attr-controls">
+            <button class="attr-btn" onclick="changeAttr('intelecto',-1)">−</button>
+            <button class="attr-btn" onclick="changeAttr('intelecto',1)">+</button>
+          </div>
+          <div class="attr-label">Intelecto</div>
+        </div>
+
+        <div class="attr-node attr-carisma" style="top:248px;left:222px;" data-attr="carisma">
+          <div class="attr-orb"><div class="attr-orb-inner" id="val-carisma">1</div></div>
+          <div class="attr-controls">
+            <button class="attr-btn" onclick="changeAttr('carisma',-1)">−</button>
+            <button class="attr-btn" onclick="changeAttr('carisma',1)">+</button>
+          </div>
+          <div class="attr-label">Carisma</div>
+        </div>
+
+        <div class="attr-node attr-vigor" style="top:248px;left:78px;" data-attr="vigor">
+          <div class="attr-label" style="order:-1">Vigor</div>
+          <div class="attr-orb"><div class="attr-orb-inner" id="val-vigor">1</div></div>
+          <div class="attr-controls">
+            <button class="attr-btn" onclick="changeAttr('vigor',-1)">−</button>
+            <button class="attr-btn" onclick="changeAttr('vigor',1)">+</button>
+          </div>
+        </div>
+
+        <div class="attr-node attr-agilidade" style="top:115px;left:30px;" data-attr="agilidade">
+          <div class="attr-orb"><div class="attr-orb-inner" id="val-agilidade">1</div></div>
+          <div class="attr-controls">
+            <button class="attr-btn" onclick="changeAttr('agilidade',-1)">−</button>
+            <button class="attr-btn" onclick="changeAttr('agilidade',1)">+</button>
+          </div>
+          <div class="attr-label">Agilidade</div>
+        </div>
+      </div>
+
+      <div class="attr-sidebar">
+        <div class="attr-summary-card">
+          <h3>Distribuição de Atributos</h3>
+          <div class="attr-bar-row attr-forca-bar">
+            <span class="attr-bar-label">Força</span>
+            <div class="attr-bar-track"><div class="attr-bar-fill" id="bar-forca" style="width:10%"></div></div>
+            <span class="attr-bar-val" id="bval-forca">1</span>
+          </div>
+          <div class="attr-bar-row attr-agilidade-bar">
+            <span class="attr-bar-label">Agilidade</span>
+            <div class="attr-bar-track"><div class="attr-bar-fill" id="bar-agilidade" style="width:10%"></div></div>
+            <span class="attr-bar-val" id="bval-agilidade">1</span>
+          </div>
+          <div class="attr-bar-row attr-vigor-bar">
+            <span class="attr-bar-label">Vigor</span>
+            <div class="attr-bar-track"><div class="attr-bar-fill" id="bar-vigor" style="width:10%"></div></div>
+            <span class="attr-bar-val" id="bval-vigor">1</span>
+          </div>
+          <div class="attr-bar-row attr-intelecto-bar">
+            <span class="attr-bar-label">Intelecto</span>
+            <div class="attr-bar-track"><div class="attr-bar-fill" id="bar-intelecto" style="width:10%"></div></div>
+            <span class="attr-bar-val" id="bval-intelecto">1</span>
+          </div>
+          <div class="attr-bar-row attr-carisma-bar">
+            <span class="attr-bar-label">Carisma</span>
+            <div class="attr-bar-track"><div class="attr-bar-fill" id="bar-carisma" style="width:10%"></div></div>
+            <span class="attr-bar-val" id="bval-carisma">1</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-header">
+      <h2>Recursos Vitais</h2>
+      <div class="section-line"></div>
+    </div>
+    <div class="vitals-grid">
+      <div class="vital-card vital-hp">
+        <div class="vital-icon-row">
+          <span class="vital-name">Pontos de Vida</span>
+        </div>
+        <div class="vital-numbers">
+          <input class="vital-current" id="hp-atual" type="number" value="20" min="0" oninput="updateVitalBar('hp')">
+          <span class="vital-sep">/</span>
+          <input class="vital-max" id="hp-max" type="number" value="20" min="1" oninput="updateVitalBar('hp')">
+          <button class="vital-suggest-btn" title="Sugerir PV máximo a partir do Vigor" onclick="sugerirVital('hp')">🎲</button>
+        </div>
+        <div class="vital-bar-track"><div class="vital-bar-fill" id="bar-hp" style="width:100%"></div></div>
+      </div>
+      <div class="vital-card vital-san">
+        <div class="vital-icon-row">
+          <span class="vital-name">Sanidade</span>
+        </div>
+        <div class="vital-numbers">
+          <input class="vital-current" id="san-atual" type="number" value="20" min="0" oninput="updateVitalBar('san')">
+          <span class="vital-sep">/</span>
+          <input class="vital-max" id="san-max" type="number" value="20" min="1" oninput="updateVitalBar('san')">
+          <button class="vital-suggest-btn" title="Sugerir Sanidade máxima a partir de Intelecto/Carisma" onclick="sugerirVital('san')">🎲</button>
+        </div>
+        <div class="vital-bar-track"><div class="vital-bar-fill" id="bar-san" style="width:100%"></div></div>
+      </div>
+      <div class="vital-card vital-pe">
+        <div class="vital-icon-row">
+          <span class="vital-name">Pontos de Esforço</span>
+        </div>
+        <div class="vital-numbers">
+          <input class="vital-current" id="pe-atual" type="number" value="10" min="0" oninput="updateVitalBar('pe')">
+          <span class="vital-sep">/</span>
+          <input class="vital-max" id="pe-max" type="number" value="10" min="1" oninput="updateVitalBar('pe')">
+          <button class="vital-suggest-btn" title="Sugerir Esforço máximo a partir de Intelecto/Carisma" onclick="sugerirVital('pe')">🎲</button>
+        </div>
+        <div class="vital-bar-track"><div class="vital-bar-fill" id="bar-pe" style="width:100%"></div></div>
+      </div>
+      <div class="vital-card vital-pe">
+        <div class="vital-icon-row"><span class="vital-name">Recurso Extra</span></div>
+        <div class="vital-numbers">
+          <input class="vital-current" id="recurso-extra-atual" type="number" value="0" min="0" oninput="updateVitalBar('recursoExtra')">
+          <span class="vital-sep">/</span>
+          <input class="vital-max" id="recurso-extra-max" type="number" value="0" min="0" oninput="updateVitalBar('recursoExtra')">
+        </div>
+        <div class="vital-bar-track"><div class="vital-bar-fill" id="bar-recursoExtra" style="width:0%"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-header"><h2>Defesa</h2><div class="section-line"></div></div>
+    <div class="defense-row"><div class="defense-card">
+      <div class="defense-label">Defesa Total</div><input class="defense-value" id="def-total" type="number" value="10">
+    </div></div>
+  </div>
+
+  <div class="section">
+    <div class="section-header">
+      <h2>Afinidades</h2>
+      <div class="section-line"></div>
+    </div>
+    <div class="afin-grid">
+      <div class="afin-card afin-forca" id="afin-forca">
+        <div class="afin-header">
+          <span class="afin-dot"></span>
+          <span class="afin-name">Força</span>
+        </div>
+        <span class="afin-pts" id="afinval-forca">0</span>
+        <div class="afin-bar"><div class="afin-bar-fill" id="afinbar-forca" style="width:0%"></div></div>
+        <div class="afin-controls">
+          <button class="afin-btn" onclick="changeAfin('forca',-1)">−</button>
+          <button class="afin-btn" onclick="changeAfin('forca',1)">+</button>
+        </div>
+      </div>
+      <div class="afin-card afin-vigor" id="afin-vigor">
+        <div class="afin-header">
+          <span class="afin-dot"></span>
+          <span class="afin-name">Vigor</span>
+        </div>
+        <span class="afin-pts" id="afinval-vigor">0</span>
+        <div class="afin-bar"><div class="afin-bar-fill" id="afinbar-vigor" style="width:0%"></div></div>
+        <div class="afin-controls">
+          <button class="afin-btn" onclick="changeAfin('vigor',-1)">−</button>
+          <button class="afin-btn" onclick="changeAfin('vigor',1)">+</button>
+        </div>
+      </div>
+      <div class="afin-card afin-intelecto" id="afin-intelecto">
+        <div class="afin-header">
+          <span class="afin-dot"></span>
+          <span class="afin-name">Intelecto</span>
+        </div>
+        <span class="afin-pts" id="afinval-intelecto">0</span>
+        <div class="afin-bar"><div class="afin-bar-fill" id="afinbar-intelecto" style="width:0%"></div></div>
+        <div class="afin-controls">
+          <button class="afin-btn" onclick="changeAfin('intelecto',-1)">−</button>
+          <button class="afin-btn" onclick="changeAfin('intelecto',1)">+</button>
+        </div>
+      </div>
+      <div class="afin-card afin-carisma" id="afin-carisma">
+        <div class="afin-header">
+          <span class="afin-dot"></span>
+          <span class="afin-name">Carisma</span>
+        </div>
+        <span class="afin-pts" id="afinval-carisma">0</span>
+        <div class="afin-bar"><div class="afin-bar-fill" id="afinbar-carisma" style="width:0%"></div></div>
+        <div class="afin-controls">
+          <button class="afin-btn" onclick="changeAfin('carisma',-1)">−</button>
+          <button class="afin-btn" onclick="changeAfin('carisma',1)">+</button>
+        </div>
+      </div>
+      <div class="afin-card afin-agilidade" id="afin-agilidade">
+        <div class="afin-header">
+          <span class="afin-dot"></span>
+          <span class="afin-name">Agilidade</span>
+        </div>
+        <span class="afin-pts" id="afinval-agilidade">0</span>
+        <div class="afin-bar"><div class="afin-bar-fill" id="afinbar-agilidade" style="width:0%"></div></div>
+        <div class="afin-controls">
+          <button class="afin-btn" onclick="changeAfin('agilidade',-1)">−</button>
+          <button class="afin-btn" onclick="changeAfin('agilidade',1)">+</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== PERÍCIAS ===== -->
+  <div class="section">
+    <div class="section-header"><h2>Perícias</h2><div class="section-line"></div></div>
+    <p style="font-family:var(--font-mono);font-size:10px;color:var(--text-muted);letter-spacing:.08em;margin-bottom:16px;">Coloque manualmente os pontos de cada perícia. Nenhum modificador ou cálculo automático é aplicado.</p>
+    <div class="pericias-tabs">
+      <div class="pericias-tab active-forca" onclick="switchPericia('forca')">Força</div>
+      <div class="pericias-tab" onclick="switchPericia('carisma')">Carisma</div>
+      <div class="pericias-tab" onclick="switchPericia('intelecto')">Inteligência</div>
+      <div class="pericias-tab" onclick="switchPericia('agilidade')">Agilidade</div>
+      <div class="pericias-tab" onclick="switchPericia('avulsas')">Avulsas</div>
+    </div>
+    <div class="pericias-panel active" id="panel-forca">
+      <div class="pericia-row"><span class="pericia-name">Atletismo</span><input class="pericia-val" data-pericia="Atletismo" type="number" value="0"></div>
+      <div class="pericia-row"><span class="pericia-name">Acrobacia</span><input class="pericia-val" data-pericia="Acrobacia" type="number" value="0"></div>
+      <div class="pericia-row"><span class="pericia-name">Briga</span><input class="pericia-val" data-pericia="Briga" type="number" value="0"></div>
+      <div class="pericia-row"><span class="pericia-name">Armas Brancas</span><input class="pericia-val" data-pericia="Armas Brancas" type="number" value="0"></div>
+    </div>
+    <div class="pericias-panel" id="panel-carisma">
+      <div class="pericia-row"><span class="pericia-name">Persuasão</span><input class="pericia-val" data-pericia="Persuasão" type="number" value="0"></div>
+      <div class="pericia-row"><span class="pericia-name">Intimidação</span><input class="pericia-val" data-pericia="Intimidação" type="number" value="0"></div>
+      <div class="pericia-row"><span class="pericia-name">Enganação</span><input class="pericia-val" data-pericia="Enganação" type="number" value="0"></div>
+      <div class="pericia-row"><span class="pericia-name">Empatia</span><input class="pericia-val" data-pericia="Empatia" type="number" value="0"></div>
+      <div class="pericia-row"><span class="pericia-name">Intuição</span><input class="pericia-val" data-pericia="Intuição" type="number" value="0"></div>
+    </div>
+    <div class="pericias-panel" id="panel-intelecto">
+      <div class="pericia-row"><span class="pericia-name">História</span><input class="pericia-val" data-pericia="História" type="number" value="0"></div>
+      <div class="pericia-row"><span class="pericia-name">Investigação</span><input class="pericia-val" data-pericia="Investigação" type="number" value="0"></div>
+      <div class="pericia-row"><span class="pericia-name">Arcana</span><input class="pericia-val" data-pericia="Arcana" type="number" value="0"></div>
+      <div class="pericia-row"><span class="pericia-name">Ciência Natural</span><input class="pericia-val" data-pericia="Ciência Natural" type="number" value="0"></div>
+      <div class="pericia-row"><span class="pericia-name">Medicina</span><input class="pericia-val" data-pericia="Medicina" type="number" value="0"></div>
+      <div class="pericia-row"><span class="pericia-name">Percepção</span><input class="pericia-val" data-pericia="Percepção" type="number" value="0"></div>
+      <div class="pericia-row"><span class="pericia-name">Sobrevivência</span><input class="pericia-val" data-pericia="Sobrevivência" type="number" value="0"></div>
+    </div>
+    <div class="pericias-panel" id="panel-agilidade">
+      <div class="pericia-row"><span class="pericia-name">Furtividade</span><input class="pericia-val" data-pericia="Furtividade" type="number" value="0"></div>
+      <div class="pericia-row"><span class="pericia-name">Crime</span><input class="pericia-val" data-pericia="Crime" type="number" value="0"></div>
+      <div class="pericia-row"><span class="pericia-name">Direção</span><input class="pericia-val" data-pericia="Direção" type="number" value="0"></div>
+      <div class="pericia-row"><span class="pericia-name">Atirar</span><input class="pericia-val" data-pericia="Atirar" type="number" value="0"></div>
+    </div>
+    <div class="pericias-panel" id="panel-avulsas">
+      <div class="pericia-row"><span class="pericia-name">Ofícios</span><input class="pericia-val" data-pericia="Ofícios" type="number" value="0"></div>
+      <div class="pericia-row"><span class="pericia-name">Resistência</span><input class="pericia-val" data-pericia="Resistência" type="number" value="0"></div>
+    </div>
+  </div>
+
+  <!-- ===== INVENTÁRIO ===== -->
+  <div class="section">
+    <div class="section-header">
+      <h2>Inventário</h2>
+      <div class="section-line"></div>
+    </div>
+    <p style="font-family:var(--font-mono);font-size:10px;color:var(--text-muted);letter-spacing:0.08em;margin-bottom:16px;">Adicione itens com descrição e efeitos</p>
+    <div class="inventario-list" id="inventario-list"></div>
+    <button class="btn-add" onclick="addItem()">+ Adicionar Item</button>
+  </div>
+
+  <!-- ===== CONDUTOS / HABILIDADES ===== -->
+  <div class="section">
+    <div class="section-header">
+      <h2>Condutos</h2>
+      <div class="section-line"></div>
+    </div>
+    <p class="condutos-intro">"Um Condutor não é nada sem o que dá a ele este nome. Você é o que faz" — Van Hex</p>
+    <div id="habilidades-list"></div>
+    <button class="btn-add" onclick="addHabilidade()">+ Adicionar Magia / Técnica</button>
+  </div>
+
+  <!-- ===== HISTÓRICO ===== -->
+  <div class="section">
+    <div class="section-header">
+      <h2>Histórico</h2>
+      <div class="section-line"></div>
+    </div>
+    <textarea class="historico-textarea" id="historico" placeholder="A história do personagem, suas motivações, traumas e segredos..."></textarea>
+  </div>
+
+  <!-- ===== ANOTAÇÕES ===== -->
+  <div class="section">
+    <div class="section-header">
+      <h2>Anotações</h2>
+      <div class="section-line"></div>
+    </div>
+    <div class="notes-grid">
+      <div class="note-card">
+        <div class="note-title">Notas de Sessão</div>
+        <textarea class="note-textarea" id="nota-sessao" placeholder="O que aconteceu nessa sessão..."></textarea>
+      </div>
+      <div class="note-card">
+        <div class="note-title">Conexões e NPCs</div>
+        <textarea class="note-textarea" id="nota-npcs" placeholder="Personagens importantes, aliados, inimigos..."></textarea>
+      </div>
+      <div class="note-card">
+        <div class="note-title">Objetivos</div>
+        <textarea class="note-textarea" id="nota-objetivos" placeholder="Metas de curto e longo prazo..."></textarea>
+      </div>
+      <div class="note-card">
+        <div class="note-title">Segredos</div>
+        <textarea class="note-textarea" id="nota-segredos" placeholder="Informações que só você sabe..."></textarea>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== CONFIGURAÇÕES ===== -->
+  <div class="section">
+    <div class="section-header">
+      <h2>Configurações</h2>
+      <div class="section-line"></div>
+    </div>
+    <div class="config-grid">
+      <div class="config-item">
+        <span class="config-label">Salvar Automaticamente</span>
+        <div class="toggle on" id="toggle-autosave" onclick="toggleConfig('autosave')"></div>
+      </div>
+      <div class="config-item">
+        <span class="config-label">Última Atualização</span>
+        <span class="config-val" id="last-save">—</span>
+      </div>
+      <div class="config-item">
+        <span class="config-label">Total de Atributos</span>
+        <span class="config-val" id="total-attrs">5</span>
+      </div>
+      <div class="config-item">
+        <span class="config-label">Itens no Inventário</span>
+        <span class="config-val" id="total-itens">0</span>
+      </div>
+      <div class="config-item" style="grid-column:1/-1"><span class="config-label">Tema</span><div id="theme-buttons"><button class="toolbar-btn" onclick="setTheme('light')">Claro</button><button class="toolbar-btn" onclick="setTheme('dark')">Escuro</button></div></div>
+      <div class="config-item" style="grid-column:1/-1"><span class="config-label">Imagem de fundo</span><div><button class="toolbar-btn" onclick="document.getElementById('background-upload').click()">Escolher imagem</button><button class="toolbar-btn" onclick="clearBackground()">Remover fundo</button><input id="background-upload" type="file" accept="image/*" onchange="setBackgroundImage(event)"></div></div>
+      <div class="config-item" style="grid-column:1/-1">
+        <span class="config-label">Limpar Todos os Dados</span>
+        <button onclick="confirmClear()" style="background:rgba(255,107,157,0.1);border:1px solid rgba(255,107,157,0.3);color:var(--aurora-4);font-family:var(--font-mono);font-size:10px;letter-spacing:0.1em;padding:6px 14px;border-radius:6px;cursor:pointer;text-transform:uppercase;">Resetar Ficha</button>
+      </div>
+    </div>
+  </div>
+
+</div><!-- #app -->
+
+<script>
+const attrs={forca:1,agilidade:1,vigor:1,intelecto:1,carisma:1};
+const afins={forca:0,vigor:0,intelecto:0,carisma:0,agilidade:0};
+let saveTimer=null,config={autosave:true},tags=[],carregandoFicha=false,itemCount=0,habCount=0,currentId=null,apiOnline=false,currentUser=null;
+let apiBase=localStorage.getItem('paleora-api-url')||'https://paleorarpg1.onrender.com/';
+function apiUrlFor(path){return apiBase.replace(/\/$/,'')+path}
+async function apiFetch(path,opts={}){const res=await fetch(apiUrlFor(path),{...opts,credentials:'include',headers:{'Content-Type':'application/json',...(opts.headers||{})}});if(!res.ok){let msg='Erro '+res.status;try{const j=await res.json();if(j.erro)msg=j.erro}catch{};throw new Error(msg)}if(res.status===204)return null;return res.json()}
+function setApiStatus(state,text){const el=document.getElementById('api-status');if(!el)return;el.className=state;document.getElementById('api-status-text').textContent=text;apiOnline=state==='online'}
+function mostrarRegistro(){document.getElementById('auth-login').style.display='none';document.getElementById('auth-register').style.display='block';document.getElementById('auth-subtitle').textContent='Crie sua conta para guardar suas fichas'}
+function mostrarLogin(){document.getElementById('auth-register').style.display='none';document.getElementById('auth-login').style.display='block';document.getElementById('auth-subtitle').textContent='Entre para acessar suas fichas'}
+async function submitAuth(e,type){e.preventDefault();const err=document.getElementById(type+'-error');err.textContent='';let email,senha;if(type==='login'){email=document.getElementById('login-email').value;senha=document.getElementById('login-senha').value}else{email=document.getElementById('register-email').value;senha=document.getElementById('register-senha').value;if(senha!==document.getElementById('register-confirm').value){err.textContent='As senhas não conferem.';return}}try{const r=await apiFetch('/api/auth/'+type,{method:'POST',body:JSON.stringify({email,senha})});currentUser=r.usuario;entrarNoApp()}catch(x){err.textContent=x.message}}
+async function iniciarAuth(){try{const r=await apiFetch('/api/auth/me');currentUser=r.usuario;entrarNoApp()}catch{document.body.classList.remove('authenticated')}}
+async function entrarNoApp(){document.body.classList.add('authenticated');document.getElementById('user-pill').textContent=currentUser.email;const ok=await checkApiStatus();if(ok)await carregarListaPersonagens();aplicarTema();aplicarFundo();}
+async function logout(){try{await apiFetch('/api/auth/logout',{method:'POST'})}catch{};currentUser=null;currentId=null;document.body.classList.remove('authenticated');mostrarLogin();document.getElementById('login-senha').value=''}
+async function checkApiStatus(){setApiStatus('checking','Conectando…');try{await apiFetch('/api/health');setApiStatus('online','Backend conectado');return true}catch(e){setApiStatus('offline','Backend offline');return false}}
+function toggleApiConfig(){const p=document.getElementById('api-config-panel');document.getElementById('api-url-input').value=apiBase;p.classList.toggle('open')}
+async function salvarApiUrl(){const v=document.getElementById('api-url-input').value.trim();if(!v)return;apiBase=v;localStorage.setItem('paleora-api-url',apiBase);document.getElementById('api-config-panel').classList.remove('open');if(await checkApiStatus())await carregarListaPersonagens()}
+function switchPericia(attr){document.querySelectorAll('.pericias-tab').forEach(t=>t.className='pericias-tab');const map={forca:0,carisma:1,intelecto:2,agilidade:3,avulsas:4};const tabs=document.querySelectorAll('.pericias-tab');tabs[map[attr]].classList.add('active-'+attr);document.querySelectorAll('.pericias-panel').forEach(p=>p.classList.remove('active'));document.getElementById('panel-'+attr).classList.add('active')}
+function changeAttr(attr,delta){attrs[attr]=Math.max(1,Math.min(20,Number(attrs[attr])+delta));document.getElementById('val-'+attr).textContent=attrs[attr];document.getElementById('bval-'+attr).textContent=attrs[attr];document.getElementById('bar-'+attr).style.width=(attrs[attr]/20*100)+'%';updateTotalAttrs();schedSave()}
+function changeAfin(attr,delta){afins[attr]=Math.max(0,Number(afins[attr])+delta);document.getElementById('afinval-'+attr).textContent=afins[attr];document.getElementById('afinbar-'+attr).style.width=(afins[attr]>0?Math.min(100,afins[attr]/10*100):0)+'%';document.getElementById('afin-'+attr).classList.toggle('active',afins[attr]>0);schedSave()}
+function updateVitalBar(key){const id=key==='recursoExtra'?'recurso-extra':key;const a=parseFloat(document.getElementById(id+'-atual').value)||0,m=parseFloat(document.getElementById(id+'-max').value)||0,p=m>0?Math.min(100,Math.max(0,a/m*100)):0;document.getElementById('bar-'+key).style.width=p+'%';schedSave()}
+function sugerirVital(key){let v;if(key==='hp')v=10+attrs.vigor*3;else if(key==='san')v=10+attrs.intelecto*2+attrs.carisma;else if(key==='pe')v=5+attrs.intelecto*2+attrs.carisma;else return;document.getElementById(key+'-max').value=v;updateVitalBar(key)}
+function updateTotalAttrs(){document.getElementById('total-attrs').textContent=Object.values(attrs).reduce((a,b)=>a+b,0)}
+function updateTotalItens(){document.getElementById('total-itens').textContent=document.querySelectorAll('.item-card').length}
+function coletarPortraitSrc(){const p=document.getElementById('portrait-preview');return p&&p.style.display!=='none'&&p.src?p.src:null}
+function construirDadosFicha(){const d={charName:document.getElementById('char-name').value,metaClasse:document.getElementById('meta-classe').value,metaIdade:document.getElementById('meta-idade').value,metaAltura:document.getElementById('meta-altura').value,metaJogador:document.getElementById('meta-jogador').value,metaCampanha:document.getElementById('meta-campanha').value,attrs:{...attrs},afins:{...afins},hpAtual:document.getElementById('hp-atual').value,hpMax:document.getElementById('hp-max').value,sanAtual:document.getElementById('san-atual').value,sanMax:document.getElementById('san-max').value,peAtual:document.getElementById('pe-atual').value,peMax:document.getElementById('pe-max').value,recursoExtraAtual:document.getElementById('recurso-extra-atual').value,recursoExtraMax:document.getElementById('recurso-extra-max').value,defTotal:document.getElementById('def-total').value,historico:document.getElementById('historico').value,notaSessao:document.getElementById('nota-sessao').value,notaNpcs:document.getElementById('nota-npcs').value,notaObjetivos:document.getElementById('nota-objetivos').value,notaSegredos:document.getElementById('nota-segredos').value,tags:[...tags],pericias:{},itens:[],habilidades:[],portrait:coletarPortraitSrc()};document.querySelectorAll('.pericia-val').forEach(el=>{d.pericias[el.dataset.pericia]=el.value});document.querySelectorAll('.item-card').forEach(c=>d.itens.push({name:c.querySelector('.item-name').value,desc:c.querySelector('.item-desc').value}));document.querySelectorAll('.habilidade-card').forEach(c=>d.habilidades.push({nome:c.querySelector('.hab-nome').value,custo:c.querySelector('.hab-custo').value,desc:c.querySelector('.hab-desc').value}));return d}
+function limparListasDinamicas(){document.getElementById('inventario-list').innerHTML='';document.getElementById('habilidades-list').innerHTML='';itemCount=0;habCount=0;tags=[];renderTags()}
+function resetarCamposParaPadrao(){const old=carregandoFicha;carregandoFicha=true;limparListasDinamicas();document.getElementById('char-name').value='';['meta-classe','meta-idade','meta-altura','meta-jogador','meta-campanha'].forEach(id=>document.getElementById(id).value='');Object.keys(attrs).forEach(k=>{attrs[k]=1;document.getElementById('val-'+k).textContent=1;document.getElementById('bval-'+k).textContent=1;document.getElementById('bar-'+k).style.width='5%'});Object.keys(afins).forEach(k=>{afins[k]=0;document.getElementById('afinval-'+k).textContent=0;document.getElementById('afinbar-'+k).style.width='0%';document.getElementById('afin-'+k).classList.remove('active')});document.getElementById('hp-atual').value=20;document.getElementById('hp-max').value=20;document.getElementById('san-atual').value=20;document.getElementById('san-max').value=20;document.getElementById('pe-atual').value=10;document.getElementById('pe-max').value=10;document.getElementById('recurso-extra-atual').value=0;document.getElementById('recurso-extra-max').value=0;['hp','san','pe','recursoExtra'].forEach(k=>{const a=k==='recursoExtra'?'recurso-extra':k;const m=parseFloat(document.getElementById(a+'-max').value)||0;document.getElementById('bar-'+k).style.width=m?'100%':'0%'});document.getElementById('def-total').value=10;document.getElementById('historico').value='';['nota-sessao','nota-npcs','nota-objetivos','nota-segredos'].forEach(id=>document.getElementById(id).value='');document.querySelectorAll('.pericia-val').forEach(el=>el.value=0);const preview=document.getElementById('portrait-preview');preview.src='';preview.style.display='none';document.querySelector('.portrait-img svg').style.display='';updateTotalAttrs();updateTotalItens();carregandoFicha=old}
+function popularFicha(d){carregandoFicha=true;resetarCamposParaPadrao();if(!d){carregandoFicha=false;return}['charName','metaClasse','metaIdade','metaAltura','metaJogador','metaCampanha'].forEach(k=>{const el=document.getElementById(k==='charName'?'char-name':k.replace('meta','meta-').replace(/[A-Z]/g,m=>'-'+m.toLowerCase()));if(el&&d[k]!==undefined)el.value=d[k]});if(d.attrs)Object.keys(d.attrs).forEach(k=>{if(k in attrs){attrs[k]=Number(d.attrs[k]);document.getElementById('val-'+k).textContent=attrs[k];document.getElementById('bval-'+k).textContent=attrs[k];document.getElementById('bar-'+k).style.width=(attrs[k]/20*100)+'%'}});if(d.afins)Object.keys(d.afins).forEach(k=>{if(k in afins){afins[k]=Number(d.afins[k])||0;document.getElementById('afinval-'+k).textContent=afins[k];document.getElementById('afinbar-'+k).style.width=Math.min(100,afins[k]/10*100)+'%';document.getElementById('afin-'+k).classList.toggle('active',afins[k]>0)}});['hp','san','pe'].forEach(v=>{if(d[v+'Atual']!==undefined)document.getElementById(v+'-atual').value=d[v+'Atual'];if(d[v+'Max']!==undefined)document.getElementById(v+'-max').value=d[v+'Max'];const a=parseFloat(document.getElementById(v+'-atual').value)||0,m=parseFloat(document.getElementById(v+'-max').value)||0;document.getElementById('bar-'+v).style.width=(m?Math.min(100,a/m*100):0)+'%'});if(d.recursoExtraAtual!==undefined)document.getElementById('recurso-extra-atual').value=d.recursoExtraAtual;if(d.recursoExtraMax!==undefined)document.getElementById('recurso-extra-max').value=d.recursoExtraMax;{const a=+document.getElementById('recurso-extra-atual').value||0,m=+document.getElementById('recurso-extra-max').value||0;document.getElementById('bar-recursoExtra').style.width=m?Math.min(100,a/m*100)+'%':'0%'}if(d.defTotal!==undefined)document.getElementById('def-total').value=d.defTotal;if(d.historico!==undefined)document.getElementById('historico').value=d.historico;['notaSessao','notaNpcs','notaObjetivos','notaSegredos'].forEach(k=>{const id=k.replace(/[A-Z]/g,m=>'-'+m.toLowerCase());if(d[k]!==undefined)document.getElementById(id).value=d[k]});if(d.tags){tags=[...d.tags];renderTags()}if(d.pericias){document.querySelectorAll('.pericia-val').forEach(el=>{if(d.pericias[el.dataset.pericia]!==undefined)el.value=d.pericias[el.dataset.pericia]})}if(d.itens)d.itens.forEach(it=>{addItemSemSalvar();const c=document.querySelectorAll('.item-card');c[c.length-1].querySelector('.item-name').value=it.name;c[c.length-1].querySelector('.item-desc').value=it.desc});if(d.habilidades)d.habilidades.forEach(x=>{addHabilidadeSemSalvar();const c=document.querySelectorAll('.habilidade-card');c[c.length-1].querySelector('.hab-nome').value=x.nome;c[c.length-1].querySelector('.hab-custo').value=x.custo;c[c.length-1].querySelector('.hab-desc').value=x.desc});if(d.portrait){const p=document.getElementById('portrait-preview');p.src=d.portrait;p.style.display='block';document.querySelector('.portrait-img svg').style.display='none'}updateTotalAttrs();updateTotalItens();carregandoFicha=false}
+async function carregarListaPersonagens(idSelecionar){const s=document.getElementById('char-select');try{const lista=await apiFetch('/api/personagens');s.innerHTML='';if(!lista.length){await novoPersonagem(true);return}lista.forEach(x=>{const o=document.createElement('option');o.value=x.id;o.textContent=x.nome||'Sem nome';s.appendChild(o)});const alvo=idSelecionar||localStorage.getItem('paleora-last-id')||lista[0].id;s.value=lista.some(x=>x.id===alvo)?alvo:lista[0].id;await loadPersonagem(s.value)}catch(e){console.error(e);s.innerHTML='<option value="">— erro ao carregar —</option>'}}
+async function loadPersonagem(id){try{const p=await apiFetch('/api/personagens/'+encodeURIComponent(id));currentId=p.id;localStorage.setItem('paleora-last-id',currentId);document.getElementById('char-select').value=currentId;popularFicha(p.dados);document.getElementById('save-text').textContent='Salvo'}catch(e){if(e.message.includes('401'))await logout();else alert('Não foi possível carregar este personagem: '+e.message)}}
+function onSelecionarPersonagem(){const id=document.getElementById('char-select').value;if(id)loadPersonagem(id)}
+async function novoPersonagem(silencioso){const nome=silencioso?'Novo Personagem':(prompt('Nome do novo personagem:','Novo Personagem')||'').trim();if(!silencioso&&!nome)return;try{const p=await apiFetch('/api/personagens',{method:'POST',body:JSON.stringify({nome:nome||'Novo Personagem',dados:{charName:nome||'Novo Personagem'}})});await carregarListaPersonagens(p.id)}catch(e){alert('Não foi possível criar o personagem: '+e.message)}}
+async function duplicarPersonagem(){if(!currentId)return;try{const d=construirDadosFicha(),p=await apiFetch('/api/personagens',{method:'POST',body:JSON.stringify({nome:(d.charName||'Personagem')+' (cópia)',dados:d})});await carregarListaPersonagens(p.id)}catch(e){alert('Não foi possível duplicar: '+e.message)}}
+async function excluirPersonagem(){if(!currentId||!confirm('Excluir este personagem permanentemente? Esta ação não pode ser desfeita.'))return;try{await apiFetch('/api/personagens/'+encodeURIComponent(currentId),{method:'DELETE'});currentId=null;localStorage.removeItem('paleora-last-id');await carregarListaPersonagens()}catch(e){alert('Não foi possível excluir: '+e.message)}}
+function schedSave(){if(carregandoFicha||!currentUser)return;document.getElementById('save-status').className='status-pending';document.getElementById('save-text').textContent='Pendente';clearTimeout(saveTimer);if(config.autosave){document.getElementById('save-status').className='status-saving';document.getElementById('save-text').textContent='Salvando...';saveTimer=setTimeout(saveData,800)}}
+async function saveData(){if(!currentUser)return;const data=construirDadosFicha();try{localStorage.setItem('paleora-backup-'+(currentId||'sem-id'),JSON.stringify(data))}catch{};try{if(!currentId){const p=await apiFetch('/api/personagens',{method:'POST',body:JSON.stringify({nome:data.charName||'Novo Personagem',dados:data})});currentId=p.id;localStorage.setItem('paleora-last-id',currentId);await carregarListaPersonagens(currentId)}else await apiFetch('/api/personagens/'+encodeURIComponent(currentId),{method:'PUT',body:JSON.stringify({nome:data.charName||undefined,dados:data})});document.getElementById('save-status').className='status-saved';document.getElementById('save-text').textContent='Salvo';setApiStatus('online','Backend conectado')}catch(e){if(e.message.includes('401'))await logout();else{document.getElementById('save-status').className='status-pending';document.getElementById('save-text').textContent='Erro ao salvar'}}}
+function addItem(){itemCount++;const d=document.createElement('div');d.className='item-card';d.id='item-'+itemCount;d.innerHTML=`<button class="item-remove" onclick="removeItem('item-${itemCount}')">×</button><input class="item-name" type="text" placeholder="Nome do item" oninput="schedSave()"><textarea class="item-desc" placeholder="Descrição e efeitos do item..." rows="2" oninput="schedSave()"></textarea>`;document.getElementById('inventario-list').appendChild(d);updateTotalItens();schedSave()}
+function addItemSemSalvar(){itemCount++;const d=document.createElement('div');d.className='item-card';d.id='item-'+itemCount;d.innerHTML=`<button class="item-remove" onclick="removeItem('item-${itemCount}')">×</button><input class="item-name" type="text" placeholder="Nome do item" oninput="schedSave()"><textarea class="item-desc" placeholder="Descrição e efeitos do item..." rows="2" oninput="schedSave()"></textarea>`;document.getElementById('inventario-list').appendChild(d)}
+function removeItem(id){const e=document.getElementById(id);if(e){e.remove();updateTotalItens();schedSave()}}
+function addHabilidade(){habCount++;const d=document.createElement('div');d.className='habilidade-card';d.id='hab-'+habCount;d.innerHTML=`<button class="hab-remove" onclick="removeHab('hab-${habCount}')">×</button><div class="hab-header"><input class="hab-nome" type="text" placeholder="Nome da habilidade..." oninput="schedSave()"><input class="hab-custo" type="text" placeholder="Custo PE" oninput="schedSave()"></div><textarea class="hab-desc" placeholder="Descrição, efeitos, alcance, requisitos..." rows="2" oninput="schedSave()"></textarea>`;document.getElementById('habilidades-list').appendChild(d);schedSave()}
+function addHabilidadeSemSalvar(){habCount++;const d=document.createElement('div');d.className='habilidade-card';d.id='hab-'+habCount;d.innerHTML=`<button class="hab-remove" onclick="removeHab('hab-${habCount}')">×</button><div class="hab-header"><input class="hab-nome" type="text" placeholder="Nome da habilidade..." oninput="schedSave()"><input class="hab-custo" type="text" placeholder="Custo PE" oninput="schedSave()"></div><textarea class="hab-desc" placeholder="Descrição, efeitos, alcance, requisitos..." rows="2" oninput="schedSave()"></textarea>`;document.getElementById('habilidades-list').appendChild(d)}
+function removeHab(id){const e=document.getElementById(id);if(e){e.remove();schedSave()}}
+function renderTags(){const c=document.getElementById('tags-container'),i=document.getElementById('tag-input');c.innerHTML='';tags.forEach((t,n)=>{const s=document.createElement('span');s.className='tag '+['blue','purple','green','pink','amber'][n%5];s.textContent=t;s.onclick=()=>{tags.splice(n,1);renderTags();schedSave()};c.appendChild(s)});c.appendChild(i)}
+function addTag(v){if(!v.trim()||tags.length>=8)return;tags.push(v.trim());renderTags();document.getElementById('tag-input').value='';schedSave()}
+function toggleConfig(key){config[key]=!config[key];document.getElementById('toggle-'+key).classList.toggle('on',config[key])}
+function confirmClear(){if(confirm('Tem certeza que deseja resetar os dados desta ficha?')){resetarCamposParaPadrao();schedSave()}}
+function setTheme(t){document.body.classList.toggle('light-theme',t==='light');localStorage.setItem('paleora-theme',t)}
+function aplicarTema(){setTheme(localStorage.getItem('paleora-theme')||'dark')}
+function setBackgroundImage(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{localStorage.setItem('paleora-bg',r.result);aplicarFundo()};r.readAsDataURL(f)}
+function aplicarFundo(){const v=localStorage.getItem('paleora-bg');if(v){document.documentElement.style.setProperty('--site-bg-image',`url("${v}")`);document.body.classList.add('has-custom-bg')}else{document.documentElement.style.setProperty('--site-bg-image','none');document.body.classList.remove('has-custom-bg')}}
+function clearBackground(){localStorage.removeItem('paleora-bg');aplicarFundo()}
+document.getElementById('portrait-trigger').addEventListener('click',()=>document.getElementById('portrait-upload').click());document.getElementById('portrait-upload').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=x=>{const p=document.getElementById('portrait-preview');p.src=x.target.result;p.style.display='block';document.querySelector('.portrait-img svg').style.display='none';schedSave()};r.readAsDataURL(f)});document.getElementById('tag-input').addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===','){e.preventDefault();addTag(e.target.value)}});document.getElementById('tag-input').addEventListener('blur',e=>{if(e.target.value)addTag(e.target.value)});document.querySelectorAll('input,textarea').forEach(el=>el.addEventListener('input',schedSave));
+document.addEventListener('DOMContentLoaded',()=>{aplicarTema();aplicarFundo();iniciarAuth()});
+</script>
+</body>
+</html>
